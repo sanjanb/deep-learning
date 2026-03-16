@@ -32,7 +32,7 @@ The project uses **Claude Desktop** as the central AI model, integrated with mul
 3. **Editing Phase:** Claude reads the saved research files and a sample template from Drive to generate a final consolidated draft.
 4. **Design Phase:** Claude converts the draft into a professional HTML file and a plain text fallback.
 
----
+
 
 ## Key Takeaway: Why MCP?
 
