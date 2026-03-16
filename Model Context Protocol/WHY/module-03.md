@@ -1,4 +1,4 @@
-### Module 03: Understanding the MCP Solution
+# Module 03: Understanding the MCP Solution
 
 This module explains how the **Model Context Protocol (MCP)** acts as the "Universal Translator" and "Standardized Plug" to solve the fragmentation nightmare discussed in the previous module.
 
