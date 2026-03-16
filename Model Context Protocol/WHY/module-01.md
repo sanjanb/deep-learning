@@ -1,4 +1,4 @@
-### Module 0: The Evolution of AI (Post-ChatGPT)
+# Module 01: The Evolution of AI (Post-ChatGPT)
 
 This module explores the historical context and the inherent limitations of Large Language Models (LLMs) that led to the creation of the Model Context Protocol.
 
