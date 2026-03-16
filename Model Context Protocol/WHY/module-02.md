@@ -1,4 +1,4 @@
-### Module 02: The Fragmentation Problem
+# Module 02: The Fragmentation Problem
 
 This module focuses on the technical and logistical "nightmare" that existed before MCP—specifically, the lack of a unified standard for connecting AI models to data and tools.
 
