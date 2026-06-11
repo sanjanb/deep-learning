@@ -1,0 +1,112 @@
+## **1. Intuition**
+
+* **Explain like I'm 15:** Imagine you are walking along a rolling, foggy mountain trail and want to know how steep your path is. You take a tiny, microscopic step forward. If your altitude goes up, the path has a positive slope; if you drop, it's negative. The **derivative** is simply a number that tells you exactly how much your altitude changes for that tiny step forward. Now, imagine you aren't just on a single path, but on a vast mountain where you can move north, south, east, or west all at once. The **gradient** is just a collection of all those individual directional slopes packed together. It points you directly toward the fastest way up the mountain.
+
+
+
+## **2. Mathematics**
+
+The fundamental definition of a derivative measures the instantaneous rate of change of a function $f(x)$ when its input $x$ is nudged by a microscopic value $h$ that approaches zero:
+
+$$f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}$$
+
+In a multi-variable context (like a neural network), we use **partial derivatives** ($\frac{\partial f}{\partial x}$) to see how the output changes when we nudge only *one* specific input variable while holding all other inputs completely still.
+
+When tracking this through a computational graph, backpropagation evaluates the global gradient of a final output loss $L$ using the **Chain Rule**. If an intermediate operation is defined as $y = f(x)$, and the downstream loss is $L$:
+
+$$\frac{\partial L}{\partial x} = \frac{\partial L}{\partial y} \cdot \frac{\partial y}{\partial x}$$
+
+Where:
+
+* $\frac{\partial y}{\partial x}$ is the **Local Derivative** (how the node's output changes relative to its own immediate inputs).
+* $\frac{\partial L}{\partial y}$ is the **Upstream Gradient** (the total accumulated sensitivity flowing backward from the final loss node).
+
+
+
+## **3. Code**
+
+Here is how Karpathy demonstrates the numerical approximation of a derivative, followed by the actual analytical backpropagation wiring for operations in Micrograd:
+
+```python
+import math
+
+# 1. Numerical Derivative Intuition Example
+def f(x):
+    return 3*x**2 - 4*x + 5
+
+h = 0.0001
+x = 3.0
+# Rise over run calculation
+numerical_slope = (f(x + h) - f(x)) / h
+print(f"Numerical Slope at x=3: {numerical_slope:.4f}") # Outputs approx 14.0006
+
+
+# 2. Value Class with Local Derivatives & Upstream Chain Rule
+class Value:
+    def __init__(self, data, _children=(), _op=''):
+        self.data = data
+        self.grad = 0.0  # Stores the accumulated global gradient (dL/dx)
+        self._prev = set(_children)
+        self._op = _op
+        self._backward = lambda: None  # Default base case: no operation
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data + other.data, (self, other), '+')
+        
+        # Local derivative of addition: d(out)/d(self) = 1, d(out)/d(other) = 1
+        def _backward():
+            self.grad += 1.0 * out.grad
+            other.grad += 1.0 * out.grad
+        out._backward = _backward
+        return out
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data * other.data, (self, other), '*')
+        
+        # Local derivative of multiplication: d(out)/d(self) = other.data
+        def _backward():
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
+        out._backward = _backward
+        return out
+
+```
+
+
+
+## **4. Architecture Diagram**
+
+The diagram below shows how a mathematical operation processes data forward, and passes gradients backward during backpropagation:
+
+$$\begin{array}{rcccl}
+\textbf{Forward Pass:} & \text{Inputs } (x, w) & \longrightarrow & \boxed{\text{Operation: } y = x \cdot w} & \longrightarrow \text{Output } (y) \\
+\\
+\textbf{Backward Pass:} & \text{Downstream Grad } \left(\frac{\partial L}{\partial x}\right) & \longleftarrow & \boxed{\frac{\partial L}{\partial y} \cdot \frac{\partial y}{\partial x}} & \longleftarrow \text{Upstream Grad } \left(\frac{\partial L}{\partial y}\right)
+\end{array}$$
+
+
+
+## **5. Interview Questions**
+
+1. **What is the difference between an analytical derivative and a numerical derivative, and which one is used in backpropagation?**
+* *Answer:* A numerical derivative calculates an approximation of a slope by evaluating a tiny finite step $h$ (i.e., $\frac{f(x+h)-f(x)}{h}$). It is computationally slow because it requires rebuilding the forward pass for every parameter. An analytical derivative uses symbolic mathematical calculus rules (like the power rule or product rule) to write a direct formula for the exact slope. Deep learning engines use analytical derivatives for speed and precision, but engineers often use numerical derivatives to verify their math works ("gradient checking").
+
+
+2. **Why do we initialize the root node's gradient to `1.0` when beginning backpropagation?**
+* *Answer:* The base case of backpropagation calculates the derivative of the final output (usually the Loss $L$) with respect to itself ($\frac{\partial L}{\partial L}$). Mathematically, a change in $L$ causes a perfectly identical change in $L$, which evaluates to exactly $1.0$. If initialized to $0.0$, the chain rule multiplication would zero out all subsequent gradients across the entire graph.
+
+
+
+
+## **6. Common Mistakes**
+
+* **Overwriting instead of Accumulating Gradients (`=` vs `+=`):** If an input variable is routed into multiple operations during the forward pass, it will receive multiple gradient values coming back from different paths. If you implement your backward step using simple assignment (`self.grad = local_derivative * out.grad`), you will overwrite previous values. You must accumulate gradients using `+=` to correctly satisfy the multivariable calculus chain rule.
+* **Floating-Point Instability in Numerical Checks:** Picking an $h$ value that is too small (e.g., $10^{-20}$) when testing a numerical derivative causes floating-point truncation errors in computer memory, resulting in completely broken calculations.
+
+
+## **7. Connections to GPT**
+
+* When training massive models like GPT, the system calculates billions of partial derivatives simultaneously. Instead of calculating these slopes one by one as single scalars (the way Micrograd does), PyTorch aggregates arrays of these individual scalar points into enormous structural matrices called **Tensors**.
+* These tensors allow graphics chips (GPUs) to compute billions of local derivatives and chain rule steps in parallel. Every word GPT predicts during training relies on these calculated gradient steps to update its attention weights, tuning the system to produce more coherent text.
