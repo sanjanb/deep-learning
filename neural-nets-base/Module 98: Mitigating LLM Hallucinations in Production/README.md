@@ -2,50 +2,46 @@
 
 ### **1. Intuition**
 
-* **Explain like I'm 15:** Imagine an LLM as a very smart student who has read the entire internet but has a bad habit: if they don't know the exact answer to a question, they will make up a incredibly believable lie just to look helpful [[01:47](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=107)]. This is called a **Hallucination** [[00:21](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=21)]. It doesn't happen because the model is broken; it happens because it's designed to predict the next most likely word based on its training, not necessarily the absolute truth [[00:52](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=52)].
+* **Explain like I'm 15:** Imagine an LLM as a very smart student who has read the entire internet but has a bad habit: if they don't know the exact answer to a question, they will make up a incredibly believable lie just to look helpful. This is called a **Hallucination**. It doesn't happen because the model is broken; it happens because it's designed to predict the next most likely word based on its training, not necessarily the absolute truth.
 
 ### **2. Technical Factors**
 
 LLM hallucinations stem from distinct core phenomena:
 
-* **Parametric Memory Over Grounding:** The model relies heavily on its static internal weights (learned during pre-training) rather than using an external text source to verify facts [[01:34](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=94)].
-* **Sub-optimal Temperature Scaling:** High temperature configurations (e.g., $T \ge 0.8$) flatten the token probability distribution, prompting the sampler to pick lower-probability tokens. While this boosts creativity, it also significantly increases hallucination rates [[02:00](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=120)].
-* **RLHF Artifacts:** Flaws in Reinforcement Learning from Human Feedback can inadvertently reward models for sounding confident and polite, even when their answers are factually incorrect [[02:22](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=142)].
+* **Parametric Memory Over Grounding:** The model relies heavily on its static internal weights (learned during pre-training) rather than using an external text source to verify facts.
+* **Sub-optimal Temperature Scaling:** High temperature configurations (e.g., $T \ge 0.8$) flatten the token probability distribution, prompting the sampler to pick lower-probability tokens. While this boosts creativity, it also significantly increases hallucination rates.
+* **RLHF Artifacts:** Flaws in Reinforcement Learning from Human Feedback can inadvertently reward models for sounding confident and polite, even when their answers are factually incorrect.
 
----
 
 ### **3. Production Misconceptions**
 
-* **Misconception 1: "Scaling up fixes it."** Moving to larger models (e.g., from a small model to GPT-4) lowers hallucination frequency, but the risk never drops to zero [[03:23](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=203)].
-* **Misconception 2: "Fine-tuning eliminates hallucinations."** Domain fine-tuning adjusts formatting and terminology, but models can still confidently hallucinate facts within that new domain [[03:37](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=217)].
-* **Misconception 3: "A legal disclaimer solves the issue."** Adding a warning is just a temporary patch; if users have to manually double-check every output, the system loses its primary value [[03:58](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=238)].
+* **Misconception 1: "Scaling up fixes it."** Moving to larger models (e.g., from a small model to GPT-4) lowers hallucination frequency, but the risk never drops to zero.
+* **Misconception 2: "Fine-tuning eliminates hallucinations."** Domain fine-tuning adjusts formatting and terminology, but models can still confidently hallucinate facts within that new domain.
+* **Misconception 3: "A legal disclaimer solves the issue."** Adding a warning is just a temporary patch; if users have to manually double-check every output, the system loses its primary value.
 
----
+
 
 ### **4. Interview Questions**
 
 1. **Why is it a system design flaw rather than an LLM flaw when a production chatbot hallucinates?**
-* *Answer:* Hallucination is an inherent feature of autoregressive language modeling. In production, it is the engineer's responsibility to wrap the model in a reliable system architecture—using accurate retrieval, guardrails, and validation layers—to verify inputs and outputs [[02:51](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=171)].
+* *Answer:* Hallucination is an inherent feature of autoregressive language modeling. In production, it is the engineer's responsibility to wrap the model in a reliable system architecture—using accurate retrieval, guardrails, and validation layers—to verify inputs and outputs.
 
 
-
----
 
 ## **3.2 Retrieval Optimization (Hybrid Search & Re-ranking)**
 
 ### **1. Intuition**
 
-* **Explain like I'm 15:** If you feed a smart student the wrong textbook pages, they will give you the wrong answer [[09:03](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=543)]. Standard search looks for snippets with a similar overall "vibe" (**Semantic Search**) [[09:43](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=583)]. But sometimes, you need a system that matches exact keywords, like specific model numbers or dates (**Keyword Search**) [[10:45](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=645)]. **Hybrid Search** combines both methods [[10:29](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=629)]. Then, a **Re-ranker** acts like a secondary editor, reviewing the top 10 search results to pick out the absolute best ones before passing them to the model [[11:51](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=711)].
+* **Explain like I'm 15:** If you feed a smart student the wrong textbook pages, they will give you the wrong answer. Standard search looks for snippets with a similar overall "vibe" (**Semantic Search**). But sometimes, you need a system that matches exact keywords, like specific model numbers or dates (**Keyword Search**). **Hybrid Search** combines both methods. Then, a **Re-ranker** acts like a secondary editor, reviewing the top 10 search results to pick out the absolute best ones before passing them to the model.
 
----
 
 ### **2. Mathematics**
 
-Standard dense vector search relies on **Cosine Similarity** to capture broad conceptual meanings [[09:43](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=583)]:
+Standard dense vector search relies on **Cosine Similarity** to capture broad conceptual meanings:
 
 $$\text{Score}_{\text{dense}}(\mathbf{q}, \mathbf{c}) = \frac{\mathbf{q} \cdot \mathbf{c}}{\|\mathbf{q}\| \|\mathbf{c}\|}$$
 
-However, dense embeddings can miss exact keyword matches (like serial numbers or specific terms) [[10:08](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=608)]. To solve this, **Hybrid Search** combines dense scores with sparse lexical scores (like BM25 or TF-IDF) using a weighted linear combination [[10:29](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=629)]:
+However, dense embeddings can miss exact keyword matches (like serial numbers or specific terms). To solve this, **Hybrid Search** combines dense scores with sparse lexical scores (like BM25 or TF-IDF) using a weighted linear combination:
 
 $$\text{Score}_{\text{hybrid}} = w_1 \cdot \text{Score}_{\text{dense}}(\mathbf{q}, \mathbf{c}) + w_2 \cdot \text{Score}_{\text{sparse}}(\mathbf{q}, \mathbf{c})$$
 
@@ -53,20 +49,19 @@ $$\text{Where } w_1 + w_2 = 1.0 \quad (\text{e.g., } w_1 = 0.6, \ w_2 = 0.4) \ [
 
 [Image showing a hybrid search pipeline blending dense semantic scores and sparse keyword scores into a combined ranking matrix]
 
----
+
 
 ### **3. The Re-ranking Phase**
 
 Because scoring millions of documents with complex models is too slow, production systems use a two-stage approach:
 
-1. **Stage 1 (Retrieval):** Fast hybrid search narrows down the collection to the top 10–15 candidate chunks [[12:16](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=736)].
-2. **Stage 2 (Re-ranking):** A computationally heavy **Cross-Encoder Model** evaluates the query and candidate chunks simultaneously, analyzing exact semantic relationships to select the top 2–3 most relevant blocks [[11:51](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=711), [12:43](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=763)].
+1. **Stage 1 (Retrieval):** Fast hybrid search narrows down the collection to the top 10–15 candidate chunks.
+2. **Stage 2 (Re-ranking):** A computationally heavy **Cross-Encoder Model** evaluates the query and candidate chunks simultaneously, analyzing exact semantic relationships to select the top 2–3 most relevant blocks.
 
----
 
 ### **4. Code Implementation**
 
-This script demonstrates how to combine and scale dense and sparse search scores into a single hybrid ranking [[10:29](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=629)]:
+This script demonstrates how to combine and scale dense and sparse search scores into a single hybrid ranking:
 
 ```python
 def calculate_hybrid_score(dense_sim: float, sparse_score: float, w1=0.6, w2=0.4):
