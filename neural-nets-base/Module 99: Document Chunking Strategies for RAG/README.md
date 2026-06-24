@@ -66,7 +66,7 @@ $$\begin{array}{lccccccc}
 * While modern LLMs like GPT-4 feature massive context windows (up to 128k+ tokens), sending oversized, un-chunked data is costly and inefficient. Effective chunking filters out noise, keeping costs down and preventing accuracy drops in long inputs.
 
 
-## **2.2 Structure-Aware & Hierarchical (Parent-Child) Chunking**
+## **99.2 Structure-Aware & Hierarchical (Parent-Child) Chunking**
 
 ### **1. Intuition**
 
@@ -156,7 +156,7 @@ $$\begin{array}{ccccc}
 * Frameworks like LlamaIndex use this architecture for advanced applications. By pinpointing data via small child nodes, they can supply GPT models with precise parent blocks, optimizing answer quality within token limits.
 
 
-## **2.3 Semantic Chunking & Propositions (Advanced)**
+## **99.3 Semantic Chunking & Propositions (Advanced)**
 
 ### **1. Intuition**
 
@@ -243,7 +243,7 @@ $$\begin{array}{cccccc}
 * Proposition-based chunking uses an initial LLM pass (like GPT-3.5) to clean and structure text into clean components. This refined layout ensures later retrieval steps provide highly relevant context for the final generation model.
 
 
-## **2.4 Evaluation Frameworks & Chonking Metrics**
+## **99.4 Evaluation Frameworks & Chonking Metrics**
 
 ### **1. Intuition**
 
