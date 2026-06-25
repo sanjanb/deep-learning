@@ -45,7 +45,7 @@ However, dense embeddings can miss exact keyword matches (like serial numbers or
 
 $$\text{Score}_{\text{hybrid}} = w_1 \cdot \text{Score}_{\text{dense}}(\mathbf{q}, \mathbf{c}) + w_2 \cdot \text{Score}_{\text{sparse}}(\mathbf{q}, \mathbf{c})$$
 
-$$\text{Where } w_1 + w_2 = 1.0 \quad (\text{e.g., } w_1 = 0.6, \ w_2 = 0.4) \ [[10:49](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=649)]$$
+$$\text{Where } w_1 + w_2 = 1.0 \quad (\text{e.g., } w_1 = 0.6, \ w_2 = 0.4) \$$
 
 [Image showing a hybrid search pipeline blending dense semantic scores and sparse keyword scores into a combined ranking matrix]
 
@@ -87,130 +87,118 @@ def execute_two_stage_retrieval(query: str, vector_store, cross_encoder, top_n=3
 
 ```
 
----
-
 ### **5. Interview Questions**
 
 1. **Why can't we use a Cross-Encoder model to search our entire database directly?**
-* *Answer:* Cross-encoders do not calculate vector embeddings separately; they must process the query and document text together [[11:51](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=711)]. This makes them highly accurate but far too slow to run across millions of documents in real time, requiring a fast first-stage filter [[12:30](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=750)].
+* *Answer:* Cross-encoders do not calculate vector embeddings separately; they must process the query and document text together. This makes them highly accurate but far too slow to run across millions of documents in real time, requiring a fast first-stage filter.
 
 
 
----
-
-## **3.3 Confidence Calibration & Abstention Policies**
+## **98.3 Confidence Calibration & Abstention Policies**
 
 ### **1. Intuition**
 
-* **Explain like I'm 15:** Instead of forcing the chatbot to guess an answer when it's unsure, we can teach it to say, "I don't know" [[15:04](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=904)]. We can check its certainty by looking at its internal confidence scores (**Logprobs**) [[15:23](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=923)], asking it the same question multiple times to see if it gives consistent answers (**Self-Consistency**) [[16:34](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=994)], or blocking the search entirely if the source document scores are too low [[18:19](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1099)]. If all else fails, we trigger an **Abstention Policy** to gracefully forward the query to a human reviewer [[19:34](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1174)].
+* **Explain like I'm 15:** Instead of forcing the chatbot to guess an answer when it's unsure, we can teach it to say, "I don't know". We can check its certainty by looking at its internal confidence scores (**Logprobs**), asking it the same question multiple times to see if it gives consistent answers (**Self-Consistency**), or blocking the search entirely if the source document scores are too low. If all else fails, we trigger an **Abstention Policy** to gracefully forward the query to a human reviewer.
 
----
 
 ### **2. Mitigating Risks with Advanced Techniques**
 
 #### **Logarithmic Probabilities (Logprobs)**
 
-When generating text, the LLM API outputs probability distributions for every token [[15:23](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=923)]. If the average logprob value across critical response tokens drops below a set threshold ($\gamma$), the system flags the answer as low-confidence and blocks it from reaching the user [[15:41](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=941)].
+When generating text, the LLM API outputs probability distributions for every token. If the average logprob value across critical response tokens drops below a set threshold ($\gamma$), the system flags the answer as low-confidence and blocks it from reaching the user.
 
 #### **Self-Consistency Sampling**
 
-The system samples the model multiple times (e.g., $N=5$) at a moderate temperature setting [[16:34](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=994)]. If the answers cluster around the same outcome, confidence is high. If the outputs vary wildly (e.g., returning random values), it indicates the model is guessing, and the response is rejected [[16:54](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1014)].
+The system samples the model multiple times (e.g., $N=5$) at a moderate temperature setting. If the answers cluster around the same outcome, confidence is high. If the outputs vary wildly (e.g., returning random values), it indicates the model is guessing, and the response is rejected.
 
 #### **Retrieval Score Thresholding**
 
-If the top match from a hybrid search falls below a clear quality threshold (e.g., $\text{Score}_{\text{hybrid}} < 0.7$), the system stops processing immediately to avoid feeding bad context to the LLM [[18:19](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1099)].
+If the top match from a hybrid search falls below a clear quality threshold (e.g., $\text{Score}_{\text{hybrid}} < 0.7$), the system stops processing immediately to avoid feeding bad context to the LLM.
 
 #### **Abstention Policy**
 
-When a query is rejected by any of these filters, the system triggers an automated fallback: it halts the conversation and creates a support ticket for a human agent [[19:34](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1174)].
+When a query is rejected by any of these filters, the system triggers an automated fallback: it halts the conversation and creates a support ticket for a human agent.
 
----
 
 ### **3. Interview Questions**
 
 1. **What is the main operational disadvantage of using Self-Consistency Sampling in production?**
-* *Answer:* It increases latency and API costs, as running five separate calls for a single user query multiplies token expenses and processing time by five [[17:26](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1046)].
+* *Answer:* It increases latency and API costs, as running five separate calls for a single user query multiplies token expenses and processing time by five.
 
 
 
----
 
-## **3.4 Input/Output Guardrails Architecture**
+## **98.4 Input/Output Guardrails Architecture**
 
 ### **1. Intuition**
 
-* **Explain like I'm 15:** Think of **Guardrails** like security checkpoints stationed at the entrance and exit of your AI application [[23:02](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1382)].
-* The **Input Guardrail** stops users from tricking the bot into doing something bad (Jailbreaking) or typing sensitive info like credit card numbers [[23:27](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1407), [23:54](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1434)].
-* The **Output Guardrail** scans the bot's response *before* the user sees it, ensuring it isn't rude, broken, or completely hallucinated [[25:03](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1503)].
+* **Explain like I'm 15:** Think of **Guardrails** like security checkpoints stationed at the entrance and exit of your AI application.
+* The **Input Guardrail** stops users from tricking the bot into doing something bad (Jailbreaking) or typing sensitive info like credit card numbers.
+* The **Output Guardrail** scans the bot's response *before* the user sees it, ensuring it isn't rude, broken, or completely hallucinated.
 
 
-
----
 
 ### **2. Dual-Barrier Guardrail Layout**
 
-Production architectures place defensive layers on both sides of the RAG pipeline [[23:02](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1382)]:
+Production architectures place defensive layers on both sides of the RAG pipeline:
 
 ```
 User Prompt ──> [ Input Guardrail Layer ] ──> [ RAG Execution ] ──> [ Output Guardrail Layer ] ──> Sanitized Output
 
 ```
 
-#### **Input Guardrail Tasks [[23:21](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1401)]**
+#### **Input Guardrail Tasks**
 
-* **Adversarial Prompt Filtering:** Detects and blocks jailbreak attempts or injections designed to bypass system rules [[23:54](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1434)].
-* **Off-Topic Query Deflection:** Rejects queries unrelated to the product (e.g., refusing to answer physics questions on an airline support bot) [[24:08](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1448)].
-* **PII Redaction/Masking:** Strips out or masks sensitive personal info (like bank details or phone numbers) before processing [[24:31](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1471)].
+* **Adversarial Prompt Filtering:** Detects and blocks jailbreak attempts or injections designed to bypass system rules.
+* **Off-Topic Query Deflection:** Rejects queries unrelated to the product (e.g., refusing to answer physics questions on an airline support bot).
+* **PII Redaction/Masking:** Strips out or masks sensitive personal info (like bank details or phone numbers) before processing.
 
-#### **Output Guardrail Tasks [[25:03](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1503)]**
+#### **Output Guardrail Tasks**
 
-* **Factual Grounding Check:** Cross-checks the response against the source documents to verify accuracy [[25:09](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1509)].
-* **Toxicity and Policy Enforcement:** Blocks inappropriate, harmful, or off-brand language [[25:20](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1520)].
+* **Factual Grounding Check:** Cross-checks the response against the source documents to verify accuracy.
+* **Toxicity and Policy Enforcement:** Blocks inappropriate, harmful, or off-brand language.
 
----
+
 
 ### **3. Production Ecosystem Tools**
 
-To build these defensive layers, engineers use dedicated open-source libraries and frameworks rather than simple text filters [[26:05](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1565)]:
+To build these defensive layers, engineers use dedicated open-source libraries and frameworks rather than simple text filters:
 
-* **Guardrails AI:** A Python validation framework that enforces structured output constraints and safety rules [[26:12](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1572)].
-* **NeMo Guardrails:** Developed by NVIDIA, this toolkit manages conversational flows, blocks off-topic queries, and keeps models aligned with safety guidelines [[26:19](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1579)].
-* **LlamaGuard:** A specialized classifier model from Meta trained to detect unsafe content in both prompts and responses [[26:22](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1582)].
+* **Guardrails AI:** A Python validation framework that enforces structured output constraints and safety rules.
+* **NeMo Guardrails:** Developed by NVIDIA, this toolkit manages conversational flows, blocks off-topic queries, and keeps models aligned with safety guidelines.
+* **LlamaGuard:** A specialized classifier model from Meta trained to detect unsafe content in both prompts and responses.
 
----
 
 ### **4. Interview Questions**
 
 1. **How do you implement an Input Guardrail to protect user privacy in a highly regulated industry?**
-* *Answer:* Implement a PII scanner using regex or dedicated named-entity recognition (NER) models at the input layer. This layer automatically anonymizes or masks sensitive data (like account numbers) before passing the text to the cloud API [[24:31](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1471), [24:58](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1498)].
+* *Answer:* Implement a PII scanner using regex or dedicated named-entity recognition (NER) models at the input layer. This layer automatically anonymizes or masks sensitive data (like account numbers) before passing the text to the cloud API.
 
 
 
----
 
-## **3.5 Continuous Evaluation: The Eval Loop**
+## **98.5 Continuous Evaluation: The Eval Loop**
 
 ### **1. Intuition**
 
-* **Explain like I'm 15:** To keep your chatbot working accurately over time, you build an automated grading system called an **Eval Loop** [[27:15](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1635)]. You create a master answer key with hundreds of real questions and correct answers [[27:47](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1667)]. Every week, you run these questions through your system and use a powerful LLM acting as an unbiased judge to grade the bot's responses, ensuring accuracy doesn't slip [[28:21](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1701), [29:55](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1795)].
+* **Explain like I'm 15:** To keep your chatbot working accurately over time, you build an automated grading system called an **Eval Loop**. You create a master answer key with hundreds of real questions and correct answers. Every week, you run these questions through your system and use a powerful LLM acting as an unbiased judge to grade the bot's responses, ensuring accuracy doesn't slip.
 
----
 
 ### **2. Core Evaluation Metrics**
 
-Production tracking relies on specialized frameworks (like **Ragas**, **TruLens**, or **DeepEval**) to measure performance across key vectors [[30:53](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1853)]:
+Production tracking relies on specialized frameworks (like **Ragas**, **TruLens**, or **DeepEval**) to measure performance across key vectors:
 
-| Metric Name | Measurement Objective | Operational Evaluation [[28:31](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1711)] |
+| Metric Name | Measurement Objective | Operational Evaluation |
 | --- | --- | --- |
-| **Faithfulness** | Detects Hallucinations | Verifies if the generated answer is strictly based on the retrieved context chunks [[28:37](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1717)]. |
-| **Answer Relevance** | Measures Completeness | Checks if the response actually addresses the user's specific question or drifts off-topic [[29:04](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1744)]. |
-| **Answer Correctness** | Measures Absolute Accuracy | Compares the system's output directly against a trusted ground-truth answer key [[29:21](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1761)]. |
+| **Faithfulness** | Detects Hallucinations | Verifies if the generated answer is strictly based on the retrieved context chunks. |
+| **Answer Relevance** | Measures Completeness | Checks if the response actually addresses the user's specific question or drifts off-topic. |
+| **Answer Correctness** | Measures Absolute Accuracy | Compares the system's output directly against a trusted ground-truth answer key. |
 
----
+
 
 ### **3. LLM-as-a-Judge Pattern**
 
-Rather than relying solely on rigid math formulas, production teams use advanced models (like GPT-4) to grade outputs [[29:55](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1795)]. The judge model receives the query, the retrieved source context, and the bot's generated answer, scoring performance on a clear 1–5 scale accompanied by structural reasoning [[30:02](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1802), [30:17](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1817)].
+Rather than relying solely on rigid math formulas, production teams use advanced models (like GPT-4) to grade outputs. The judge model receives the query, the retrieved source context, and the bot's generated answer, scoring performance on a clear 1–5 scale accompanied by structural reasoning.
 
 ```
 [ Evaluation Dataset ] ──> ( Test Run ) ──> [ Context + Generated Output ]
@@ -225,4 +213,4 @@ Rather than relying solely on rigid math formulas, production teams use advanced
 ### **4. Interview Questions**
 
 1. **Can an answer be highly faithful but score poorly on answer relevance? Provide an example.**
-* *Answer:* Yes. If a user asks "What was the company's Q1 revenue?" and the system retrieves a chunk about carbon emission targets and outputs a matching response, the answer is *faithful* to the source text but entirely *irrelevant* to the user's question [[29:04](http://www.youtube.com/watch?v=F_UM_SqCOfU&t=1744)].
+* *Answer:* Yes. If a user asks "What was the company's Q1 revenue?" and the system retrieves a chunk about carbon emission targets and outputs a matching response, the answer is *faithful* to the source text but entirely *irrelevant* to the user's question.
