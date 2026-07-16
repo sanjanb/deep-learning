@@ -1,74 +1,67 @@
-# LLM Fine-Tuning Crash Course Documentation
+# LLM Fine-Tuning Technical Reference Manual
 
-This repository serves as a technical knowledge base for Large Language Model (LLM) fine-tuning. It follows the curriculum of the [LLM Fine-Tuning Crash Course](https://www.youtube.com/watch?v=IIvORO248Zs) by Codebasics, documenting the transition from foundational models to domain-specific, reasoning-capable agents.
+This repository serves as a comprehensive technical knowledge base for Large Language Model (LLM) fine-tuning. It documents the architecture, mathematical principles, and practical engineering workflows required to transition from general-purpose foundation models to domain-specific, reasoning-capable agents.
 
 ## Overview
 
-The documentation covers the transition from general-purpose LLMs to specialized models using modern Parameter-Efficient Fine-Tuning (PEFT) techniques. Key focus areas include the mathematical mechanics of LoRA, memory optimization via QLoRA, and high-speed implementation using the Unsloth library.
+The documentation covers modern Parameter-Efficient Fine-Tuning (PEFT) techniques designed to bypass massive computational overhead. Key focus areas include the mathematical mechanics of Low-Rank Adaptation (LoRA), memory optimization via QLoRA, and high-throughput execution using the Unsloth library.
 
 ## Table of Contents
 
-1. [Theory: Transfer Learning, RAG, and Fine-Tuning](#/llm-fine-tine/01_theory_and_rag_vs_finetuning.md)
-2. [PEFT: Parameter-Efficient Fine-Tuning Overview](#part-2-peft-specialization)
-3. [LoRA: Low-Rank Adaptation Mechanics](#part-3-lora-deep-dive)
-4. [Optimization: Quantization and QLoRA](#part-4-quantization-and-qlora)
-5. [Implementation: Unsloth Hands-on Tutorial](#part-5-hands-on-implementation)
+1. [Theory: Transfer Learning, RAG, and Fine-Tuning](https://www.google.com/search?q=%23part-1-theory-rag-and-fine-tuning)
+2. [PEFT: Parameter-Efficient Fine-Tuning Overview](https://www.google.com/search?q=%23part-2-peft-overview)
+3. [LoRA: Low-Rank Adaptation Mechanics](https://www.google.com/search?q=%23part-3-lora-technical-deep-dive)
+4. [Optimization: Quantization and QLoRA](https://www.google.com/search?q=%23part-4-quantization-and-qlora)
+5. [Implementation: Unsloth Production Workflows](https://www.google.com/search?q=%23part-5-unsloth-production-workflows)
 
 ---
 
 ## Documentation Modules
 
-### [Part 1: Theory, RAG, and Fine-Tuning](/llm-fine-tine/01_theory_and_rag_vs_finetuning.md)
+### Part 1: Theory, RAG, and Fine-Tuning
 
-* **Timestamp:**
-* **Core Focus:** The decision framework for choosing between Retrieval-Augmented Generation (RAG) and Fine-Tuning based on knowledge versus behavioral requirements.
-* **Key Concept:** RAG acts as an "Open Book" for facts; Fine-tuning acts as "Internalized Behavior" for tone and logic.
+* **Core Focus:** Establishing a rigorous decision framework for choosing between Retrieval-Augmented Generation (RAG) and architectural fine-tuning based on knowledge retrieval versus behavioral requirements.
+* **Key Concept:** RAG acts as an "Open Book" for factual grounding and dynamic data retrieval; fine-tuning serves as "Internalized Behavior" to permanently alter tone, structural output formatting, and domain-specific logic.
 
-### [Part 1b: PEFT Overview](/llm-fine-tine/01b_parameter_efficient_fine_tuning.md)
+### Part 2: PEFT Overview
 
-* **Core Focus:** Addressing the computational "VRAM Wall" by freezing base model weights and training only small adapter modules.
-* **Key Concept:** Reducing trainable parameters by over 90% to enable training on consumer-grade hardware.
+* **Core Focus:** Overcoming the computational "VRAM Wall" by freezing baseline model weights and training specialized, lightweight adapter modules.
+* **Key Concept:** Minimizing trainable parameters by greater than 90% to democratize LLM training on consumer-grade hardware without degrading final model performance.
 
-### [Part 2: LoRA Technical Deep Dive](/llm-fine-tine/02_lora_technical_deep_dive.md)
+### Part 3: LoRA Technical Deep Dive
 
-* **Timestamp:**
-* **Core Focus:** The mathematical decomposition of weight updates into low-rank matrices (A and B).
-* **Key Concept:** Utilizing the Low-Intrinsic Dimension hypothesis to modify model behavior without inference latency.
+* **Core Focus:** The mathematical decomposition of weight update matrices into low-rank intrinsic matrices $A$ and $B$.
+* **Key Concept:** Exploiting the Low-Intrinsic Dimension hypothesis to modify model weights dynamically, eliminating extra inference latency during deployment.
 
-### [Part 3: Quantization and QLoRA](/llm-fine-tine/03_quantization_and_qlora.md)
+### Part 4: Quantization and QLoRA
 
-* **Timestamp:**
-* **Core Focus:** Memory reduction techniques including NormalFloat 4 (NF4), Double Quantization, and Paged Optimizers.
-* **Key Concept:** Compressing model weights from 16-bit to 4-bit to fit 70B+ parameter models on single enterprise GPUs.
+* **Core Focus:** Advanced memory-reduction paradigms including NormalFloat 4 (NF4) data types, Double Quantization, and Paged Optimizers.
+* **Key Concept:** Quantizing 16-bit floating-point weights down to 4-bit configurations, enabling the execution of 70B+ parameter models on single enterprise-grade GPUs.
 
-### [Part 4: Unsloth Hands-on Tutorial](/llm-fine-tine/04_unsloth_hands_on_tutorial.md)
+### Part 5: Unsloth Production Workflows
 
-* **Timestamp:**
-* **Core Focus:** End-to-end implementation using the Unsloth framework to fine-tune Llama 3.2 on the ServiceNow R1 dataset for reasoning.
-* **Key Concept:** Applying Chain-of-Thought (CoT) datasets to enable models to perform "Thinking" steps before responding.
+* **Core Focus:** End-to-end implementation pipelines using manual Triton kernel optimizations to accelerate fine-tuning on specialized reasoning datasets.
+* **Key Concept:** Implementing Chain-of-Thought (CoT) datasets to systematically embed explicit "Thinking" steps prior to final token generation.
 
 ---
 
 ## Technical Requirements
 
-* **Operating System:** Linux or Windows (via WSL2).
+* **Operating System:** Linux distributions or Windows Subsystem for Linux (WSL2).
 * **Environment:** Python 3.10+, CUDA 12.1+ recommended.
-* **Hardware:** NVIDIA GPU with minimum 8GB VRAM (Tesla T4, RTX 30/40 series).
-* **Primary Libraries:** * `unsloth` for optimized training.
-* `peft` for adapter management.
-* `bitsandbytes` for 4-bit/8-bit quantization.
-* `trl` for Supervised Fine-Tuning (SFT).
+* **Hardware:** NVIDIA GPU with a minimum of 8GB VRAM (e.g., Tesla T4, RTX 30/40 series).
+* **Core Stack:**
+* `unsloth` — Optimized kernel execution and accelerated training loops.
+* `peft` — Adapter weight abstraction and management.
+* `bitsandbytes` — 4-bit and 8-bit quantization matrix operations.
+* `trl` — Supervised Fine-Tuning (SFT) and alignment abstractions.
 
 
-
-## Repository Recommendations
-
-* **Code Implementation:** It is recommended to maintain a `notebooks/` directory containing the `.ipynb` export of the Unsloth training script for use in Google Colab.
-* **Hyperparameter Reference:** Create a `CONFIG.md` file to track experimental results across different Ranks (), Alpha values, and Learning Rates.
-* **Dataset Schema:** Document the JSON/Parquet schema required for the SFT Trainer to ensure compatibility with custom data.
 
 ---
 
-**Course Credits:** [Codebasics YouTube Channel](https://www.google.com/search?q=https://www.youtube.com/%40codebasics)
+## Repository Architecture Recommendations
 
-**Original Video:** [LLM Fine Tuning Crash Course](https://www.youtube.com/watch?v=IIvORO248Zs)
+* **Code Implementation:** Maintain a structured `notebooks/` directory containing fully documented `.ipynb` workflows optimized for local environments or cloud instances like Google Colab.
+* **Hyperparameter Reference:** Implement a unified `CONFIG.md` file to track evaluation results across varied Rank ($r$), Alpha ($\alpha$), learning rates, and batch size configurations.
+* **Dataset Schema:** Rigorously document the JSON/Parquet schemas expected by the SFT Trainer to guarantee deterministic data ingestion for custom datasets.
